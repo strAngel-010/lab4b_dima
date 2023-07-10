@@ -8,7 +8,7 @@ int add(Tree* const tree, unsigned int key, unsigned int info){
         if (push_res == RES_ERR){
             return RES_ERR;
         }
-        splay(find_res);
+        splay(tree, find_res);
         tree->root = find_res;
         return RES_OK;
     }
@@ -23,7 +23,7 @@ int add(Tree* const tree, unsigned int key, unsigned int info){
         return RES_OK;
     }
 
-    splay(node);
+    splay(tree, node);
     tree->root = node;
     return RES_OK;
 }
@@ -89,6 +89,7 @@ Node* create_new_node(Node* const par, unsigned int key, unsigned int info){
     return node;
 }
 
+/*
 void rotate_left(Node* node){
     Node* parent = node->parent;
     Node* right = node->right;
@@ -99,17 +100,62 @@ void rotate_left(Node* node){
             parent->right = right;
         }
     }
-    Node* tmp = right->left;
-    right->left = node;
+    Node* tmp = NULL;
+    if (right){
+        tmp = right->left;
+        right->left = node;
+    }
     node->right = tmp;
     node->parent = right;
-    right->parent = parent;
+    if (right) { right->parent = parent; }
     if (node->right){
         node->right->parent = node;
     }
 }
+ */
 
-void rotate_right(Node* node){
+void rotate_left(Tree* const tree, Node* node){
+    Node* y = node->right;
+    Node* p = node->parent;
+
+    if (y) {
+        node->right = y->left;
+        if (y->left) { y->left->parent = node; }
+        y->parent = p;
+    }
+
+    if (!p){ tree->root = y; }
+    else {
+        if (p->left == node){ p->left = y; }
+        else { p->right = y; }
+    }
+
+    if (y) { y->left = node; }
+    node->parent = y;
+}
+
+void rotate_right(Tree* const tree, Node* node){
+    Node* y = node->left;
+    Node* p = node->parent;
+
+    if (y) {
+        node->left = y->right;
+        if (y->right) { y->right->parent = node; }
+        y->parent = p;
+    }
+
+    if (!p){ tree->root = y; }
+    else {
+        if (p->right == node){ p->right = y; }
+        else { p->left = y; }
+    }
+
+    if (y) { y->right = node; }
+    node->parent = y;
+}
+
+/*
+void rotate_right(Tree* const tree, Node* node){
     Node* parent = node->parent;
     Node* left = node->left;
     if (parent){
@@ -119,40 +165,48 @@ void rotate_right(Node* node){
             parent->left = left;
         }
     }
-    Node* tmp = left->right;
-    left->right = node;
+    Node* tmp = NULL;
+    if (left){
+        tmp = left->right;
+        left->right = node;
+    }
     node->left = tmp;
     node->parent = left;
-    left->parent = parent;
+    if (left) { left->parent = parent; }
     if (node->left){
         node->left->parent = node;
     }
 }
+ */
 
-void splay(Node* node){
+void splay(Tree* const tree, Node* node){
     Node* p = node->parent;
     Node* g = NULL;
     while (p){
         g = p->parent;
         if (node == p->left){
             if (!g){
-                rotate_right(p);
+                rotate_right(tree, p);
             } else if (p == g->left){
-                rotate_right(g);
-                rotate_right(p);
+                rotate_right(tree, g);
+                p = node->parent;
+                rotate_right(tree, p);
             } else {
-                rotate_right(p);
-                rotate_left(p);
+                rotate_right(tree, p);
+                p = node->parent;
+                rotate_left(tree, p);
             }
         } else {
             if (!g){
-                rotate_left(p);
+                rotate_left(tree, p);
             } else if (p == g->right){
-                rotate_left(g);
-                rotate_left(p);
+                rotate_left(tree, g);
+                p = node->parent;
+                rotate_left(tree, p);
             } else {
-                rotate_left(p);
-                rotate_right(p);
+                rotate_left(tree, p);
+                p = node->parent;
+                rotate_right(tree, p);
             }
         }
         p = node->parent;
@@ -160,27 +214,28 @@ void splay(Node* node){
 }
 
 int delete(Tree* const tree, Node* node, int ind){
-    splay(node);
+    splay(tree, node);
     tree->root = node;
     if (node->items > 1){
         list_delete(node, ind);
         return RES_OK;
     }
 
-    tree->root = merge(node->left, node->right);
+    tree->root = merge(tree, node->left, node->right);
     free(node->head);
     free(node);
     return RES_OK;
 }
 
-Node* merge(Node* const left, Node* const right){
+Node* merge(Tree* const tree, Node* const left, Node* const right){
     if (left){ left->parent = NULL; }
     if (right){ right->parent = NULL; }
     if (!right){ return left; }
     if (!left){ return right; }
     Node* res = find_max_node(left);
-    splay(res);
+    splay(tree, res);
     res->right = right;
+    right->parent = res;
     return res;
 }
 
@@ -254,7 +309,7 @@ void print_show(const Node* node){
                 arrlen = i+1;
                 tabs = (int*) realloc(tabs, arrlen*sizeof(int));
                 if (!tabs){
-                    printf("Error in print_show()\n");
+                    printf("Error (print_show)\n");
                     return;
                 }
                 tabs[arrlen-1] = 2;
@@ -268,7 +323,7 @@ void print_show(const Node* node){
         ++arrlen;
         tabs = (int*) realloc(tabs, arrlen*sizeof(int));
         if (!tabs){
-            printf("Error in print_show()\n");
+            printf("Error (print_show)\n");
             return;
         }
 
@@ -364,7 +419,7 @@ void special_task(Tree* const tree, unsigned int key){
 
 Node* find_next(const Node* node){
     if (!node){
-        printf("Error in findNext\n");
+        printf("Error (findNext)\n");
         return NULL;
     }
 
@@ -402,7 +457,7 @@ int input_from_file(Tree* const tree, char* const filename){
 
         int res = add(tree, key, info);
         if (res == RES_ERR){
-            printf("Error in D_Input_From_File()\n");
+            printf("Error (D_Input_From_File)\n");
             return RES_ERR;
         }
     }

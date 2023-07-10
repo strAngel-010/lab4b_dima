@@ -2,9 +2,10 @@
 #define DIALOG_H
 
 #include <stdio.h>
-#include "../aux_funcs/aux_funcs.h"
+#include "dop_funcs.h"
 #include "tree.h"
 #include "splay.h"
+#include "timing.h"
 
 int D_Add(Tree* const tree);
 int D_Find(Tree* const tree);

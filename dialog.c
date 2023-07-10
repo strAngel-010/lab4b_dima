@@ -16,7 +16,7 @@ int D_Add(Tree* const tree){
 
     int res = add(tree, key, info);
     if (res == RES_ERR){
-        printf("Error in D_Add()\n");
+        printf("Error (D_Add)\n");
         return RES_ERR;
     }
     printf("OK\n");
@@ -37,7 +37,7 @@ int D_Find(Tree* const tree){
     }
     printf("key: %u; info: ", res->key);
     print_info(res);
-    splay(res);
+    splay(tree, res);
     tree->root = res;
     printf("OK\n");
     return RES_OK;
@@ -109,11 +109,34 @@ int D_InputFromFile(Tree* const tree){
 
     int res = input_from_file(tree, filename);
     if (res == RES_ERR){
-        printf("Error in D_Input_From_File()\n");
+        printf("Error (D_Input_From_File)\n");
     }
 
     free(filename);
     return res;
 }
 
-int D_Timing(Tree* const tree){}
+int D_Timing(Tree* const tree){
+    unsigned int min_elems = 0;
+    unsigned int max_elems = 0;
+    unsigned int step = 0;
+    unsigned int trees = 0;
+
+    printf("Enter min_elems:\n");
+    if (getUInt(&min_elems) == RES_EOF){ return RES_EOF; }
+
+    printf("Enter max_elems:\n");
+    if (getUInt(&max_elems) == RES_EOF){ return RES_EOF; }
+
+    printf("Enter step:\n");
+    if (getUInt(&step) == RES_EOF){ return RES_EOF; }
+
+    printf("Enter number of trees:\n");
+    if (getUInt(&trees) == RES_EOF){ return RES_EOF; }
+
+    int res = timing(min_elems, max_elems, step, trees);
+    if (res == RES_ERR){
+        printf("Error (D_Timing)\n");
+    }
+    return res;
+}
